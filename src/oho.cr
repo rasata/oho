@@ -3,7 +3,8 @@ Signal::INT.trap do
   exit 0
 end
 # END Handle ^C
-STDIN.read_timeout = 0.1
+# 0.1 seconds
+STDIN.read_timeout = Time::Span.new(nanoseconds: 100_000_000)
 
 require "option_parser"
 require "./oho/*"
