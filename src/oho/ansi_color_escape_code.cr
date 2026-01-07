@@ -18,7 +18,7 @@ module Oho
     }
     BASIC_BACKGROUND_COLOR_LOOKUP={
       # backgrounds
-      40 => "dimgray",
+      40 => "black",
       41 => "red",
       42 => "lime",
       43 => "yellow",
