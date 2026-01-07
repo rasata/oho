@@ -67,11 +67,7 @@ module Oho
         str << "</span>" if ! escape_code.nil? && escape_code.as(EscapeCode).affects_display?
       end
 
-      # get rid of the [0m spans
-      cleaned_response = response.gsub(/<span style="">(.*?)<\/span>/, "\\1")
-      # get rid of the useless spans: <span style="whatever"></span>
-      cleaned_response = cleaned_response.gsub(/<span style="[^"]*"><\/span>/, "")
-      {cleaned_response, escape_code}
+      {delete_pointless_spans(response), escape_code}
 
     end
     def extract_next_escape_code(char    : Char,
@@ -249,6 +245,13 @@ module Oho
         raise UnexpectedEndOfReader.new("eep")
       end
       {response, reader}
+    end
+
+    private def delete_pointless_spans(html) : String
+      # get rid of the [0m spans
+      cleaned_html = html.gsub(/<span style="">(.*?)<\/span>/, "\\1")
+      # get rid of the useless spans with no content: <span style="whatever"></span>
+      cleaned_html.gsub(/<span style="[^"]*"><\/span>/, "")
     end
 
     private def handle_right_square_bracket(char : Char, reader : Char::Reader) : Tuple(Char, Char::Reader)
