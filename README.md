@@ -69,7 +69,7 @@ are some hacks you can do to get around it, but
 [Fenestro](https://fenestro.xyz) is happy to save you that trouble.
 
 ```sh
-docs/colortest.sh | oho -d | fenestro 
+docs/colortest.sh | oho -d | fenestro --name "colortest"
 ```
 
 Voilà a window opens with your pretty HTML loaded into it. 
