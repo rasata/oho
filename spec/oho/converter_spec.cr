@@ -71,6 +71,41 @@ describe Oho::Converter do
     response, escape_code = c.process(test_string, nil)
     response.should(eq("foo"))
   end
+
+  it "doesn't change background color when bolding" do
+    c = Oho::Converter.new(default_options)
+    test_string = "\033[1m bold \033[0m"
+    response, escape_code = c.process(test_string, nil)
+    response.should(eq("<span style=\"font-weight: bold; \"> bold </span>"))
+  end
+
+  it "doesn't change background color when double bolding" do
+    c = Oho::Converter.new(default_options)
+    test_string = "\033[1m bold \033[1m double bold \033[0m"
+    response, escape_code = c.process(test_string, nil)
+    response.should(eq("<span style=\"font-weight: bold; \"> bold </span><span style=\"font-weight: bold; \"> double bold </span>"))
+  end
+
+   it "doesn't doesn't loose sections when eliminating empty spans" do
+    # explanation:
+    # whenever a new escape code is found, a new span is created, so
+    # \033[1m\033[40m produces two spans, but the first one ends up
+    # having no content. So, we delete it.
+    # There was a bad regexp and too much was getting deleted.
+    c = Oho::Converter.new(default_options)
+    test_string = "\033[1m bold \033[1m\033[40m double bold black background \033[0m"
+    # test_string = "\033[1m bold \033[1;40m double bold black background \033[0m"
+    response, escape_code = c.process(test_string, nil)
+    response.should(eq("<span style=\"font-weight: bold; \"> bold </span><span style=\"font-weight: bold; background-color: black; \"> double bold black background </span>"))
+  end
+
+   it "correctly combines two sequences" do
+      c = Oho::Converter.new(default_options)
+      test_string = "\033[1m bold text \033[42m bold text green background \033[0m"
+      response, escape_code = c.process(test_string, nil)
+      response.should(eq("<span style=\"font-weight: bold; \"> bold text </span><span style=\"font-weight: bold; background-color: lime; \"> bold text green background </span>"))
+   end
+
   describe "#extract_next_escape_code" do
     # there are too damn many options to do a unit test for each one
     # looping over grouped arrays of them to make sure all are tested
