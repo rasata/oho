@@ -3,11 +3,13 @@ STASHED=0
 VERSION="dev_version"
 if [ "$1" != "" ]; then 
   VERSION=$1
+  # replace the placeholder with the specified version number.
   perl -pi -e "s/VERSION_NUMBER_HERE/$1/" src/oho.cr
 fi
 echo "compiling..."
 crystal build --release src/oho.cr
-if [ "$1" != "" ]; then 
+if [ "$1" != "" ]; then
+  # put the placeholder back for the next time.
   perl -pi -e "s/$1/VERSION_NUMBER_HERE/" src/oho.cr
 fi
 echo "creating compressed release file..."
