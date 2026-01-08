@@ -189,6 +189,7 @@ module Oho
         val_enders = ['A', 'B', 'C', 'D', 's', 'h', 'l', 'p', 'm']
         if seq_length == 2
           return true if zero_val_enders.includes? current_char
+          return true if current_char == 'm' # Handle [m (reset, equivalent to [0m)
         elsif seq_length == 3
           return true if ['j', 'm'].includes? current_char 
           # if j assuming prior was '2'
