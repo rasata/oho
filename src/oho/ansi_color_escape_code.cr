@@ -544,7 +544,9 @@ module Oho
       # (if present)
       if ! is_zero_style? && ! escape_code.nil?
         # continue on with any styles we don't trump
-        styles += (escape_code.as(EscapeCode).styles - styles)
+        inherited = escape_code.as(EscapeCode).styles - styles
+        # Exclude 0 (reset) from inherited styles - reset shouldn't carry forward
+        styles += inherited.reject { |s| s == 0 }
       end
       response = String.build do |str|
         styles.each do |style_int|
