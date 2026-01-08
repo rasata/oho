@@ -249,8 +249,9 @@ module Oho
     end
 
     private def delete_pointless_spans(html) : String
-      # get rid of the [0m spans
-      cleaned_html = html.gsub(/<span style="">(.*?)<\/span>/, "\\1")
+      # get rid of the [0m spans (use [\s\S] instead of . to match newlines)
+      # cleaned_html = html.gsub(/<span style="">([\s\S]*?)<\/span>/, "\\1")
+      cleaned_html = html.gsub(/<span style="">(.*?)<\/span>/m, "\\1")
       # get rid of the useless spans with no content: <span style="whatever"></span>
       cleaned_html.gsub(/<span style="[^"]*"><\/span>/, "")
     end
