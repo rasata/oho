@@ -4,89 +4,90 @@ describe Oho::Converter do
   # TODO: Write tests
   default_options = {:background_color => "white",
                      :foreground_color => "black"}
-  it "creates inline styles" do
-    c = Oho::Converter.new(default_options)
-    # STDERR.puts("\\033[31mhi\\033[0m")
-    test_string = "\033[31mhi\033[0m"
-    response, escape_code = c.process(test_string, nil)
-    # c.process(test_string).should(eq("<span class=\"red\">hi</span>"))
-    response.should(eq("<span style=\"color: red; \">hi</span>"))
+  describe "general ANSI handling" do
+    it "creates inline styles" do
+      c = Oho::Converter.new(default_options)
+      # STDERR.puts("\\033[31mhi\\033[0m")
+      test_string = "\033[31mhi\033[0m"
+      response, escape_code = c.process(test_string, nil)
+      # c.process(test_string).should(eq("<span class=\"red\">hi</span>"))
+      response.should(eq("<span style=\"color: red; \">hi</span>"))
 
-  end
+    end
 
-  it "handles escape codes that terminate on subsequent lines" do
-    c = Oho::Converter.new(default_options)
-    test_string = "\033[36mfoo\nbar\033[0m baz"
-    response, escape_code = c.process(test_string, nil)
-    response.should(eq("<span style=\"color: aqua; \">foo\n<br />bar</span> baz"))
-  end
+    it "handles escape codes that terminate on subsequent lines" do
+      c = Oho::Converter.new(default_options)
+      test_string = "\033[36mfoo\nbar\033[0m baz"
+      response, escape_code = c.process(test_string, nil)
+      response.should(eq("<span style=\"color: aqua; \">foo\n<br />bar</span> baz"))
+    end
 
-  it "handles escape codes that terminate on subsequent lines with non-display codes in between" do
-    c = Oho::Converter.new(default_options)
-    test_string = "7:7        belongs_to :thingy,\033[0;32;1m\033[K
-\033[0m7:8    \033[0;32;1m\033[0m               primary_key: :uuid,\033[0;32;1m\033[K"
-    response, escape_code = c.process(test_string, nil)
-    response.should(eq("7:7        belongs_to :thingy,<span style=\"color: lime; \">\n<br /></span>7:8                   primary_key: :uuid,<span style=\"color: lime; \">"))
-  end
+    it "handles escape codes that terminate on subsequent lines with non-display codes in between" do
+      c = Oho::Converter.new(default_options)
+      test_string = "7:7        belongs_to :thingy,\033[0;32;1m\033[K
+  \033[0m7:8    \033[0;32;1m\033[0m               primary_key: :uuid,\033[0;32;1m\033[K"
+      response, escape_code = c.process(test_string, nil)
+      response.should(eq("7:7        belongs_to :thingy,<span style=\"color: lime; \">\n<br />  </span>7:8                   primary_key: :uuid,<span style=\"color: lime; \">"))
+    end
 
 
-  it "handles escape codes with non-display ones in between" do
-    c = Oho::Converter.new(default_options)
-    test_string = "\033[36mfoo\033[Kbar\033[0m"
-    response, escape_code = c.process(test_string, nil)
-    response.should(eq("<span style=\"color: aqua; \">foobar</span>"))
-  end
+    it "handles escape codes with non-display ones in between" do
+      c = Oho::Converter.new(default_options)
+      test_string = "\033[36mfoo\033[Kbar\033[0m"
+      response, escape_code = c.process(test_string, nil)
+      response.should(eq("<span style=\"color: aqua; \">foobar</span>"))
+    end
 
-  it "ignores screen mode sequences" do
-    c = Oho::Converter.new(default_options)
-    test_string = "\033[=1;7hfoo\033[=0l"
-    response, escape_code = c.process(test_string, nil)
-    response.should(eq("foo"))
-  end
+    it "ignores screen mode sequences" do
+      c = Oho::Converter.new(default_options)
+      test_string = "\033[=1;7hfoo\033[=0l"
+      response, escape_code = c.process(test_string, nil)
+      response.should(eq("foo"))
+    end
 
-  it "really ignores screen mode sequences" do
-    c = Oho::Converter.new(default_options)
-    test_string="\033[?1h\033=\r\033[33mcommit abcd\r\033[K\033[?1l\033>"
-    response, escape_code = c.process(test_string, nil)
-    response.should(eq("\r<span style=\"color: yellow; \">commit abcd\r"))
-  end
+    it "really ignores screen mode sequences" do
+      c = Oho::Converter.new(default_options)
+      test_string="\033[?1h\033=\r\033[33mcommit abcd\r\033[K\033[?1l\033>"
+      response, escape_code = c.process(test_string, nil)
+      response.should(eq("\r<span style=\"color: yellow; \">commit abcd\r"))
+    end
 
-  it "ignores question mark screen mode sequences" do
-    c = Oho::Converter.new(default_options)
-    test_string = "\033[?7hfoo\033[?7l"
-    response, escape_code = c.process(test_string, nil)
-    response.should(eq("foo"))
-  end
+    it "ignores question mark screen mode sequences" do
+      c = Oho::Converter.new(default_options)
+      test_string = "\033[?7hfoo\033[?7l"
+      response, escape_code = c.process(test_string, nil)
+      response.should(eq("foo"))
+    end
 
-  it "removes empty spans that do nothing" do
-    c = Oho::Converter.new(default_options)
-    test_string = "\033[0mfoo\033[0m"
-    response, escape_code = c.process(test_string, nil)
-    response.should(eq("foo"))
-  end
+    it "removes empty spans that do nothing" do
+      c = Oho::Converter.new(default_options)
+      test_string = "\033[0mfoo\033[0m"
+      response, escape_code = c.process(test_string, nil)
+      response.should(eq("foo"))
+    end
 
-  it "removes spans that encapsulate nothing" do
-    c = Oho::Converter.new(default_options)
-    test_string = "\033[0mfoo\033[0m"
-    response, escape_code = c.process(test_string, nil)
-    response.should(eq("foo"))
-  end
+    it "removes spans that encapsulate nothing" do
+      c = Oho::Converter.new(default_options)
+      test_string = "\033[0mfoo\033[0m"
+      response, escape_code = c.process(test_string, nil)
+      response.should(eq("foo"))
+    end
 
-  it "doesn't change background color when bolding" do
-    c = Oho::Converter.new(default_options)
-    test_string = "\033[1m bold \033[0m"
-    response, escape_code = c.process(test_string, nil)
-    response.should(eq("<span style=\"font-weight: bold; \"> bold </span>"))
-  end
+    it "doesn't change background color when bolding" do
+      c = Oho::Converter.new(default_options)
+      test_string = "\033[1m bold \033[0m"
+      response, escape_code = c.process(test_string, nil)
+      response.should(eq("<span style=\"font-weight: bold; \"> bold </span>"))
+    end
 
-  it "doesn't change background color when double bolding" do
-    c = Oho::Converter.new(default_options)
-    test_string = "\033[1m bold \033[1m double bold \033[0m"
-    response, escape_code = c.process(test_string, nil)
-    response.should(eq("<span style=\"font-weight: bold; \"> bold </span><span style=\"font-weight: bold; \"> double bold </span>"))
-  end
+    it "doesn't change background color when double bolding" do
+      c = Oho::Converter.new(default_options)
+      test_string = "\033[1m bold \033[1m double bold \033[0m"
+      response, escape_code = c.process(test_string, nil)
+      response.should(eq("<span style=\"font-weight: bold; \"> bold </span><span style=\"font-weight: bold; \"> double bold </span>"))
+    end
 
-   it "doesn't doesn't loose sections when eliminating empty spans" do
+    it "doesn't doesn't loose sections when eliminating empty spans" do
     # explanation:
     # whenever a new escape code is found, a new span is created, so
     # \033[1m\033[40m produces two spans, but the first one ends up
@@ -97,15 +98,22 @@ describe Oho::Converter do
     # test_string = "\033[1m bold \033[1;40m double bold black background \033[0m"
     response, escape_code = c.process(test_string, nil)
     response.should(eq("<span style=\"font-weight: bold; \"> bold </span><span style=\"font-weight: bold; background-color: black; \"> double bold black background </span>"))
-  end
+    end
 
-   it "correctly combines two sequences" do
+    it "correctly combines two sequences" do
       c = Oho::Converter.new(default_options)
       test_string = "\033[1m bold text \033[42m bold text green background \033[0m"
       response, escape_code = c.process(test_string, nil)
       response.should(eq("<span style=\"font-weight: bold; \"> bold text </span><span style=\"font-weight: bold; background-color: lime; \"> bold text green background </span>"))
-   end
+    end
 
+    it "newlines don't add white background" do
+      c = Oho::Converter.new(default_options)
+      test_string = "\033[1;33mdiff --git a/README.md b/README.md\033[m\n\033[1;33mindex 74ca8cd..01ed47d 100644\033[m"
+      response, escape_code = c.process(test_string, nil)
+      response.should(eq("<span style=\"font-weight: bold; color: yellow; \">diff --git a/README.md b/README.md</span>\n<br /><span style=\"font-weight: bold; color: yellow; \">index 74ca8cd..01ed47d 100644</span>"))
+    end
+  end
   describe "#extract_next_escape_code" do
     # there are too damn many options to do a unit test for each one
     # looping over grouped arrays of them to make sure all are tested
