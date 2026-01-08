@@ -12,7 +12,7 @@ output beautiful. oho will handle it just fine.
 
 ## Usage
 
-Simply pipe your colorful terminal output to oho and it will spit out HTML.
+Pipe your colorful terminal output to oho and it will spit out HTML.
 
 I've included a test script in the docs directory for you to try it out with.
 
@@ -42,31 +42,48 @@ Usage: <some command> | oho [-d][-v] [-b <background color>] [-f <foreground col
     -h, --help                       Show this help
 ```
 
-### Note
-Many command line tools can detect if the tool they are piping data to is a "tty"
-or not. For example `git log --stat` has many colors, but if you pipe it to
-another script like `cat` they'll all disappear. If the script you're trying to
-convert to HTML do this detection then oho won't ever receive the colors you
-want converted. Fortunately there is an easy way to trick it. Most Unix
-based systems have a tool called `script` installed on them.
+### Keeping the colors
+When piping information between command line apps, the terminal escape codes are stripped. For example `git diff HEAD^` would give you a colorized diff of your code, but when you pipe it to another tool - like oho - it becomes plain, colorless, text. To maintain those colors you have two options: `script` and `unbuffer`. `unbuffer` will make your life easier, but `script` is probably already installed on your system.
 
-So, if I wanted to convert my fancy `git log` output on my mac I might say:
+#### unbuffer
+`unbuffer` is part of "Expect", which is [an odd collection of TCL scripts](https://core.tcl-lang.org/expect/index) for automating various tasks.
+
+You can install it with homebrew:
+
+```bash
+brew install expect
+```
+or using apt-get:
+```bash
+apt-install expect
+```
+
+Once it's installed you can preface the script you want to invoke with `unbuffer``, and then pipe that on to oho convert it to HTML.
+
+```bash
+unbuffer git --no-pager diff HEAD^ | oho
+```
+
+**Note**: Unbuffer works by convincing your tool that it's outputting to
+an interactive buffer. Some tools, like git, expect you to page through
+long output in interactive mode. You'll need to disable that on calls that
+go through unbuffer. With git you just append `--no-pager` immediately after
+`git` For example: `git --no-pager diff HEAD^`
+
+#### script
+`script` is probably on your system already on your system, and it works well, but it's not really intended for this purpose and thus requires additional arguments to turn off its normal behavior.
 
 ```
 script -q /dev/null git log --stat -n 4 | oho
-      # | |         |                       ^ this great tool
-      # | |         ^ the command to run 
+      # | |         |                       ^ converts it to html
+      # | |         ^ the command to run
       # | ^ we don't want the file it writes
       # ^ don't add status messages
 ```
 
-Run `man script` to learn what the various options are on your system. Linux and
-macOS/BSD tend to have different versions of `script`.
 
-#### Mac Users Bonus
-Saving it to a file and then opening that file in a browser is annoying. There
-are some hacks you can do to get around it, but
-[Fenestro](https://fenestro.xyz) is happy to save you that trouble.
+#### An alternative to your browser
+Saving it to a file and then opening that file in a browser is annoying. There are some hacks you can do to get around it, but [Fenestro](https://fenestro.xyz) is happy to save you that trouble.
 
 ```sh
 docs/colortest.sh | oho -d | fenestro --name "colortest"
@@ -77,7 +94,7 @@ Voilà a window opens with your pretty HTML loaded into it.
 
 ## Installation
 
-### macOS via Homebrew
+### macOS & Linux via Homebrew
 ```sh
 brew tap masukomi/homebrew-apps
 brew install oho
@@ -93,7 +110,7 @@ crystal build src/oho.cr
 ```
 
 An `oho` executable will be created in the current directory. Just move that
-into your PATH and follow the Usage instructions.
+into one of the directories in your `PATH`` and follow the Usage instructions.
 
 
 ## Caveats
@@ -122,6 +139,10 @@ please include a unit test that exercises the new/changed code.
 5. Commit your changes (git commit -am 'Add some feature')
 6. Push to the branch (git push origin my_new_feature)
 7. Create a new Pull Request
+
+## Questions?
+
+I'm happy to help, just reach out to me on the Fediverse (Mastodon & friends) at [@masukomi@connectified.com](https://connectified.com/masukomi)
 
 ## Contributors
 
